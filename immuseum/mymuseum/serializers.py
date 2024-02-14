@@ -9,3 +9,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = ['mobile_no', 'email', 'account_no', 'ifsc', 'vpa', 'password']
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()

@@ -3,6 +3,7 @@ from django.db import models
 class UserDetails(models.Model):
     id = models.AutoField(primary_key=True)
     mobile_no = models.CharField(max_length=20, null=True)
+    username = models.CharField(max_length=20)
     email = models.EmailField(max_length=255, unique=True)  # Add email field
     account_no = models.CharField(max_length=50, null=True)
     ifsc = models.CharField(max_length=20, null=True)

@@ -19,4 +19,5 @@ from .views import *
 
 urlpatterns = [
     path('register/', UserRegister.as_view()),
+    path('login/',LoginAPIView.as_view())
 ]
