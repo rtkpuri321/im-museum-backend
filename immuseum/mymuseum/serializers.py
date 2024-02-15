@@ -13,3 +13,9 @@ class UserDetailsSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
+
+
+class GetUserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        exclude = ['password']  # Exclude the password field from serialization
