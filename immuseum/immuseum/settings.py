@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -48,7 +49,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'mymuseum.utils.token_validations.TokenValidationMiddleware'
+    'mymuseum.utils.token_validations.TokenValidationMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'immuseum.urls'
@@ -138,3 +140,14 @@ OAUTH2_PROVIDER = {
 
 OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'                                                                         
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'oauth2_provider.Application'                                                                          
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Add your React application's URL here
+    # Add more allowed origins if needed
+]
+
+# Allow all headers
+CORS_ALLOW_ALL_HEADERS = True
+
+# Allow credentials (cookies, authorization headers, etc.) to be included in CORS requests
+CORS_ALLOW_CREDENTIALS = True
