@@ -46,7 +46,7 @@ class LoginAPIView(APIView):
                     return Response({'error': 'Invalid Password'}, status=status.HTTP_401_UNAUTHORIZED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error":'Error in login. '+str(e)}, status=500)
+            return Response({"error":f'Error in login: {str(e)}'}, status=500)
 
 class UserDataAPIView(APIView):
     def get(self, request):
@@ -64,7 +64,7 @@ class UserDataAPIView(APIView):
             serializer = GetUserDataSerializer(user_details)
             serialized_data = serializer.data
             
-            return Response(serialized_data)  # Return the serialized data as a JSON response
+            return Response({"user_data":serialized_data, "status":True}, status=200)  # Return the serialized data as a JSON response
         except Exception as e:
             print(e)
             return Response({'error': 'Error in fetching user details.'}, status=500)  # Return a generic error response
