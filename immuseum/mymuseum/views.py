@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import *
 from .utils.access_token_gen import *
+from .utils.upload_images import *
 from django.contrib.auth.models import User
+from django.db import transaction
 
 
 # Create your views here.
@@ -52,45 +54,59 @@ class UserDataAPIView(APIView):
     def get(self, request):
         try:
             # Assuming the user is authenticated, you can access the user object
-            auth_data = request.user
-            user_id = auth_data.id
+            # auth_data = request.user
+            # user_id = auth_data.id
+            user_id = 1
             # Retrieve user data from the UserDetails model
             try:
                 user_details = UserDetails.objects.get(id=user_id)
             except UserDetails.DoesNotExist:
                 return Response({'error': 'User details not found'}, status=404)
             
-            # Serialize the user data if needed
+            # Serialize the user data
             serializer = GetUserDataSerializer(user_details)
             serialized_data = serializer.data
             
-            return Response({"user_data":serialized_data, "status":True}, status=200)  # Return the serialized data as a JSON response
+            # Retrieve images associated with the user
+            user_images = UserImages.objects.filter(user_details=user_details)
+            
+            # Serialize the images data
+            image_serializer = GetUserImageSerializer(user_images, many=True)
+            images_data = image_serializer.data
+            
+            return Response({"user_data": serialized_data, "images": images_data, "status": True}, status=200)
         except Exception as e:
             print(e)
-            return Response({'error': 'Error in fetching user details.'}, status=500)  # Return a generic error response
-   
+            return Response({'error': 'Error in fetching user details.'}, status=500)
+
 class AddUserImageView(APIView):
     def post(self, request):
         # Assuming you pass the user_id in the URL
-        # auth_data = request.user
-        # user_id = auth_data.id/
-        user_id=1
+        user_id = 1  # Temporary user_id for testing, replace this with your actual logic to retrieve user_id
+        
         # Retrieve the user details
         try:
             user = UserDetails.objects.get(id=user_id)
         except UserDetails.DoesNotExist:
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        # Create a serializer instance with the request data
-        serializer = UserImageSerializer(data=request.data)
+        with transaction.atomic():
+            # Create a serializer instance with the request data
+            serializer = UserImageSerializer(data=request.data)
         
-        # Validate the serializer data
-        if serializer.is_valid():
-            # Save the image data
-            image_data = serializer.validated_data
-            user_image = UserImages.objects.create(image=image_data['image'], image_desc=image_data['image_desc'])
-            user_image.user_details.set([user])  # Associate the image with the user using set() method
-            user_image.save()
-            return Response({"message": "Image added successfully", "image_id": user_image.image_id}, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Validate the serializer data
+            if serializer.is_valid():
+                # Save the image data
+                image_data = serializer.validated_data
+                image_path = user_image_upload_path(user_id, filename=image_data['image'].name)
+            
+                image = UserImages.objects.create(
+                    image=image_path,
+                    image_desc=image_data['image_desc']
+                )
+                image.user_details = user  
+                image.save()
+            
+                return Response({"message": "Image added successfully", "image_id": image.image_id}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

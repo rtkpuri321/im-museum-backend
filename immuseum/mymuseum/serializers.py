@@ -25,3 +25,8 @@ class UserImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserImages
         fields = ['image','image_desc']  # Specify the fields to include in the serializer
+
+class GetUserImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserImages
+        fields = ['image_id', 'image', 'image_desc', 'image_likes', 'status_flag']

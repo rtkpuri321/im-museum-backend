@@ -10,6 +10,8 @@ class AdminImmuseum(models.Model):
 class UserDetails(models.Model):
     id = models.AutoField(primary_key=True)
     mobile_no = models.CharField(max_length=20, null=True)
+    user_name = models.CharField(max_length=255)
+    bio = models.TextField(null=True)
     username = models.CharField(max_length=20)
     email = models.EmailField(max_length=255, unique=True)
     account_no = models.CharField(max_length=50, null=True)
@@ -42,7 +44,7 @@ class UserDetails(models.Model):
 class UserImages(models.Model):
     image_id = models.AutoField(primary_key=True)
     image = models.ImageField()
-    user_details = models.ManyToManyField(UserDetails, related_name='images')
+    user_details = models.ForeignKey(UserDetails, on_delete=models.CASCADE, null=True)
     image_desc = models.TextField(null=True)
     image_likes = models.IntegerField(null=True)
     status_flag = models.IntegerField(default=1)
