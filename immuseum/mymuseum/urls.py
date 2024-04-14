@@ -13,13 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
 from .views import *
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
+
+
 
 urlpatterns = [
     path('register/', UserRegister.as_view()),
     path('login/',LoginAPIView.as_view()),
     path('user-details/',UserDataAPIView.as_view()),
-    path('add-image/',AddUserImageView.as_view())
+    path('add-image/',AddUserImageView.as_view()),
+    path('get-image/<int:user_id>/<image_name>/',GetImage.as_view())
 ]
+
+# Add this line to serve static files during development
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -77,36 +77,50 @@ class UserDataAPIView(APIView):
             return Response({"user_data": serialized_data, "images": images_data, "status": True}, status=200)
         except Exception as e:
             print(e)
-            return Response({'error': 'Error in fetching user details.'}, status=500)
+            return Response({"error":f'Error in uploading image: {str(e)}'}, status=500)
 
 class AddUserImageView(APIView):
     def post(self, request):
-        # Assuming you pass the user_id in the URL
-        user_id = 1  # Temporary user_id for testing, replace this with your actual logic to retrieve user_id
-        
-        # Retrieve the user details
         try:
-            user = UserDetails.objects.get(id=user_id)
-        except UserDetails.DoesNotExist:
-            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        with transaction.atomic():
-            # Create a serializer instance with the request data
-            serializer = UserImageSerializer(data=request.data)
-        
-            # Validate the serializer data
-            if serializer.is_valid():
-                # Save the image data
-                image_data = serializer.validated_data
-                image_path = user_image_upload_path(user_id, filename=image_data['image'].name)
+            user_id = 1  # Temporary user_id for testing, replace this with your actual logic to retrieve user_id
+            try:
+                user = UserDetails.objects.get(id=user_id)
+            except UserDetails.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
             
-                image = UserImages.objects.create(
-                    image=image_path,
-                    image_desc=image_data['image_desc']
-                )
-                image.user_details = user  
-                image.save()
-            
-                return Response({"message": "Image added successfully", "image_id": image.image_id}, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            with transaction.atomic():
+                serializer = UserImageSerializer(data=request.data)
+                if serializer.is_valid():
+                    image_data = serializer.validated_data
+                    image_path = upload_image(image_file=image_data['image'], image_name=image_data['image'].name)
+                    
+                    # Save image details to database
+                    image = UserImages.objects.create(
+                        image=image_path,
+                        image_desc=image_data['image_desc']
+                    )
+                    image.user_details = user  
+                    image.save()
+                
+                    return Response({"message": "Image added successfully", "image_id": image.image_id}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
+
+class GetImage(APIView):
+    def get(self, request, user_id, image_name):
+        # Check if the file extension indicates an image file
+        if not image_name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+            return Response({"error": "Invalid image file format"}, status=400)
+        
+        # Construct the path to the image
+        image_path = os.path.join('images', f'user_{user_id}', image_name)
+        
+        # Open and read the image file in binary mode
+        with open(os.path.join(settings.STATIC_ROOT, image_path), 'rb') as image_file:
+            image_data = image_file.read()
+        
+        # Create a response with the image data and content type
+        response = Response(image_data, content_type='image/jpeg')
+        return response

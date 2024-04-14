@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -38,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'gdstorage'
 ]
 
 MIDDLEWARE = [
@@ -49,7 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'mymuseum.utils.token_validations.TokenValidationMiddleware',
+    # 'mymuseum.utils.token_validations.TokenValidationMiddleware',
     'corsheaders.middleware.CorsMiddleware'
 ]
 
@@ -151,3 +154,10 @@ CORS_ALLOW_ALL_HEADERS = True
 
 # Allow credentials (cookies, authorization headers, etc.) to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Google Drive Storage Settings
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'immuseum/cobalt-brand-371219-cec9ad2242c0.json'
+GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = '/uploads/'
