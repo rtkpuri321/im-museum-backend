@@ -27,6 +27,27 @@ class UserImageSerializer(serializers.ModelSerializer):
         fields = ['image','image_desc']  # Specify the fields to include in the serializer
 
 class GetUserImageSerializer(serializers.ModelSerializer):
+    # Define a new field for the converted Google Drive link
+    converted_image_link = serializers.SerializerMethodField()
+
+    def get_converted_image_link(self, obj):
+        # Check if the image field is not empty
+        if obj.image:
+            try:
+                # Convert the ImageFieldFile object to a string
+                image_url = str(obj.image)
+                # Extract the file ID from the original Google Drive link
+                file_id = image_url.split("/")[5]
+                # Construct the new link format
+                new_link = f"https://drive.google.com/thumbnail?id={file_id}"
+                return new_link
+            except IndexError:
+                # If the image URL is not in the expected format, return None
+                return None
+        else:
+            # If the image field is empty, return None
+            return None
+
     class Meta:
         model = UserImages
-        fields = ['image_id', 'image', 'image_desc', 'image_likes', 'status_flag']
+        fields = ['image_id', 'image', 'converted_image_link', 'image_desc', 'image_likes', 'status_flag']
