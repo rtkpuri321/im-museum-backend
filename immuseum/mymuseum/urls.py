@@ -25,7 +25,9 @@ urlpatterns = [
     path('login/',LoginAPIView.as_view()),
     path('user-details/',UserDataAPIView.as_view()),
     path('add-image/',AddUserImageView.as_view()),
-    path('get-image/<int:user_id>/<image_name>/',GetImage.as_view())
+    path('get-image/',GetImage.as_view()),
+    path('image/like/',ImageLikeAPI.as_view()),
+    path('add-user-interest/', AddUserInterest.as_view())
 ]
 
 # Add this line to serve static files during development

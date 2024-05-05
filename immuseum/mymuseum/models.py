@@ -36,6 +36,7 @@ class UserDetails(models.Model):
     )
     subscribers_count = models.IntegerField(null=True)
     status_flag = models.IntegerField(default=1)
+    interest = models.JSONField(null=True)
 
     def __str__(self):
         return f"User ID: {self.id}, Mobile No: {self.mobile_no}"
@@ -62,3 +63,13 @@ class Subscribers(models.Model):
     subscribers = models.ForeignKey(UserDetails, related_name='subscriber_subscriptions', on_delete=models.CASCADE)
     subscribed_to = models.ForeignKey(UserDetails, related_name='subscriber_to_subscriptions', on_delete=models.CASCADE)
     status_flag = models.IntegerField(default=1)
+
+class ImageLikeAudit(models.Model):
+    like_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(UserDetails, on_delete=models.CASCADE, null=True)
+    image = models.ForeignKey(UserImages, on_delete=models.CASCADE, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status_flag = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f'Like ID: {self.like_id}, User: {self.user}, Image: {self.image}'

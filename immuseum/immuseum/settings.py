@@ -159,5 +159,5 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Google Drive Storage Settings
-GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'immuseum/cobalt-brand-371219-cec9ad2242c0.json'
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'im-museum-backend/immuseum/immuseum/cobalt-brand-371219-cec9ad2242c0.json'
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = '/uploads/'

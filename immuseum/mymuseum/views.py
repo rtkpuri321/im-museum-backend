@@ -109,18 +109,101 @@ class AddUserImageView(APIView):
             print(str(e))
 
 class GetImage(APIView):
-    def get(self, request, user_id, image_name):
-        # Check if the file extension indicates an image file
-        if not image_name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
-            return Response({"error": "Invalid image file format"}, status=400)
+    def get(self, request):
+        try:
+            user_id = 1
+            # Retrieve user data from the UserDetails model
+            try:
+                user_details = UserDetails.objects.get(id=user_id)
+            except UserDetails.DoesNotExist:
+                return Response({'error': 'User details not found'}, status=404)
+            
+            # Retrieve images associated with the user
+            user_images = UserImages.objects.filter(status_flag=1)
+            # Extract user interests
+            user_interests = user_details.interest
+
+            # Filter images based on user interests
+            if user_interests and len(user_interests)>0:
+                filtered_images = []
+                for image in user_images:
+                    for interest in user_interests:
+                        if interest.lower() in image.image_desc.lower():
+                            filtered_images.append(image)
+            else:
+                filtered_images = user_images
+            
+            # Serialize the images data
+            image_serializer = GetUserImageSerializer(filtered_images, many=True)
+            images_data = image_serializer.data
+            
+            return Response({"images": images_data, "status": True}, status=200)
+        except Exception as e:
+            print(e)
+            return Response({"error":f'Error in uploading image: {str(e)}'}, status=500)
+
+class ImageLikeAPI(APIView):
+    def post(self, request):
+        try:
+            # Get the image ID from the request data
+            image_id = request.data.get('image_id')
+
+            user_id = 1
+
+            # Check if the image ID is provided
+            if not image_id:
+                return Response({'error': 'Image ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                # Get the image object from the database
+                image = UserImages.objects.get(image_id=image_id)
+            except UserImages.DoesNotExist:
+                return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Increment the like count for the image
+            if ImageLikeAudit.objects.filter(image_id=image_id, user_id=user_id, status_flag=1).count()>0:
+                if image.image_likes:
+                    image.image_likes -= 1
+                ImageLikeAudit.objects.filter(image_id=image_id, user_id=user_id).update(status_flag=0)
+
+            else:
+                if image.image_likes:
+                    image.image_likes += 1
+                else:
+                    image.image_likes = 1
+
+                if ImageLikeAudit.objects.filter(image_id=image_id, user_id=user_id, status_flag=0).count()>0:
+                    ImageLikeAudit.objects.filter(image_id=image_id, user_id=user_id).update(status_flag=1)
+                else:
+                    ImageLikeAudit.objects.create(image_id=image_id, user_id=user_id)
+            
+            image.save()
+            # Return success response
+            return Response({'message': 'Like submitted successfully', 'likes':image.image_likes if image.image_likes else 0, "status":True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error in liking image: {str(e)}, image_id:{image_id}")
+            return Response({'message': 'Error in liking image.', "status":False}, status=500)
         
-        # Construct the path to the image
-        image_path = os.path.join('images', f'user_{user_id}', image_name)
+class AddUserInterest(APIView):
+    def post(self, request):
+        try:
+            # Parse the payload to extract interests
+            interests = request.data.get('interest', [])
+
+            # Retrieve the user based on the authenticated user or any other identifier
+            user_id = 1  # Assuming you have user authentication enabled
+            try:
+                user = UserDetails.objects.get(id=user_id)
+            except UserDetails.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update the user's interests with the new interests provided in the payload
+            user.interest = interests
+
+            # Save the user object to persist the changes
+            user.save()
+
+            return Response({"message": "Interests added successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "Error in adding interests.", "status":False}, status=500)
         
-        # Open and read the image file in binary mode
-        with open(os.path.join(settings.STATIC_ROOT, image_path), 'rb') as image_file:
-            image_data = image_file.read()
-        
-        # Create a response with the image data and content type
-        response = Response(image_data, content_type='image/jpeg')
-        return response
