@@ -32,18 +32,8 @@ class LoginAPIView(APIView):
                 
                 user_details = UserDetails.objects.get(username=username)
                 if user_details.password == password:
-                    # Check if a User with the same email already exists
-                    user = User.objects.filter(username=user_details.username).first()
-
-                    # If a User with the same email doesn't exist, create a new User
-                    # if not user:
-                    #     user = User.objects.create_user(
-                    #         username=user_details.username,
-                    #         email=user_details.email,
-                    #         password=user_details.password  # Note: Password should be properly hashed
-                    #     )
-                    access_token = generate_access_token(user,user_details.id,'end_user')
-                    return Response({'message': 'Login Successful! Welcome to ImMuseum', 'access_token': access_token})
+                    access_token = generate_access_token(user_details.id)
+                    return Response({'message': 'Login Successfull! Welcome to ImMuseum', 'access_token': access_token})
                 else:
                     return Response({'error': 'Invalid Password'}, status=status.HTTP_401_UNAUTHORIZED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -119,7 +109,7 @@ class GetImage(APIView):
                 return Response({'error': 'User details not found'}, status=404)
             
             # Retrieve images associated with the user
-            user_images = UserImages.objects.filter(status_flag=1)
+            user_images = UserImages.objects.filter(status_flag=1).order_by('-created_on')
             # Extract user interests
             user_interests = user_details.interest
 

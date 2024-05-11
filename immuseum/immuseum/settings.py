@@ -161,3 +161,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Google Drive Storage Settings
 GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'im-museum-backend/immuseum/immuseum/cobalt-brand-371219-cec9ad2242c0.json'
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = '/uploads/'
+
+# Define a secret key for signing the JWT token
+SECRET_KEY = 'nlj)v$oui@$sl@h5r$ti#jao7h-#s#(g$dcso0$d#%^w-1225t'

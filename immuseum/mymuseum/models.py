@@ -48,6 +48,7 @@ class UserImages(models.Model):
     user_details = models.ForeignKey(UserDetails, on_delete=models.CASCADE, null=True)
     image_desc = models.TextField(null=True)
     image_likes = models.IntegerField(null=True)
+    created_on = models.DateTimeField(auto_now=True)
     status_flag = models.IntegerField(default=1)
 
 class UserComments(models.Model):

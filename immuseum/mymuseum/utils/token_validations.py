@@ -1,34 +1,32 @@
-from rest_framework import status
-from rest_framework.response import Response
-from oauth2_provider.models import AccessToken
-import datetime
-import pytz
-from django.utils import timezone
+from django.http import JsonResponse
+from django.conf import settings
+import jwt
 
 class TokenValidationMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Exclude certain URLs from token validation, if needed
-        excluded_paths = ['/login/', '/register/']
-        if request.path_info not in excluded_paths:
-            access_token = request.headers.get('Authorization')
-            if access_token:
-                try:
-                    access_token_obj = AccessToken.objects.get(token=access_token)
-                    # Assuming expires is a timezone-naive datetime object
-                    expires_naive = access_token_obj.expires.replace(tzinfo=None)  # Remove timezone information
+        # Exclude token validation for certain URLs
+        excluded_urls = ['/login/', '/register/']
+        if request.path_info in excluded_urls:
+            return self.get_response(request)
 
-                    expires_aware_utc = timezone.make_aware(expires_naive, timezone=pytz.utc)
-                    if expires_aware_utc < timezone.now():
-                        return Response({'error': 'Token expired'}, status=status.HTTP_401_UNAUTHORIZED)
-                    # Attach user details to the request for further processing
-                    request.user = access_token_obj.user
-                except AccessToken.DoesNotExist:
-                    return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                return Response({'error': 'Authorization header missing'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Retrieve the token from the request headers
+        token = request.headers.get('Authorization')
 
-        response = self.get_response(request)
-        return response
+        if not token:
+            return JsonResponse({'error': 'Token is missing'}, status=401)
+
+        try:
+            # Verify the token using the secret key
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+
+            # Attach the user ID from the token payload to the request for further processing
+            request.user_id = payload['user_id']
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'error': 'Token has expired'}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+
+        return self.get_response(request)
