@@ -46,7 +46,7 @@ class UserDataAPIView(APIView):
             # Assuming the user is authenticated, you can access the user object
             # auth_data = request.user
             # user_id = auth_data.id
-            user_id = 1
+            user_id = request.auth_data.get('user_id')
             # Retrieve user data from the UserDetails model
             try:
                 user_details = UserDetails.objects.get(id=user_id)
@@ -72,7 +72,7 @@ class UserDataAPIView(APIView):
 class AddUserImageView(APIView):
     def post(self, request):
         try:
-            user_id = 1  # Temporary user_id for testing, replace this with your actual logic to retrieve user_id
+            user_id = request.auth_data.get('user_id')  # Temporary user_id for testing, replace this with your actual logic to retrieve user_id
             try:
                 user = UserDetails.objects.get(id=user_id)
             except UserDetails.DoesNotExist:
@@ -101,7 +101,7 @@ class AddUserImageView(APIView):
 class GetImage(APIView):
     def get(self, request):
         try:
-            user_id = 1
+            user_id = request.auth_data.get('user_id')
             # Retrieve user data from the UserDetails model
             try:
                 user_details = UserDetails.objects.get(id=user_id)
@@ -138,7 +138,7 @@ class ImageLikeAPI(APIView):
             # Get the image ID from the request data
             image_id = request.data.get('image_id')
 
-            user_id = 1
+            user_id = request.auth_data.get('user_id')
 
             # Check if the image ID is provided
             if not image_id:
@@ -181,7 +181,7 @@ class AddUserInterest(APIView):
             interests = request.data.get('interest', [])
 
             # Retrieve the user based on the authenticated user or any other identifier
-            user_id = 1  # Assuming you have user authentication enabled
+            user_id = request.auth_data.get('user_id')  # Assuming you have user authentication enabled
             try:
                 user = UserDetails.objects.get(id=user_id)
             except UserDetails.DoesNotExist:

@@ -7,6 +7,14 @@ class TokenValidationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Allow preflight OPTIONS requests without token validation
+        if request.method == 'OPTIONS':
+            response = JsonResponse({'detail': 'Preflight request allowed.'})
+            response['Access-Control-Allow-Origin'] = '*'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
+            return response
+
         # Exclude token validation for certain URLs
         excluded_urls = ['/login/', '/register/']
         if request.path_info in excluded_urls:
@@ -18,12 +26,19 @@ class TokenValidationMiddleware:
         if not token:
             return JsonResponse({'error': 'Token is missing'}, status=401)
 
+        if token and token.startswith('Bearer '):
+            token = token.split(' ')[1]
+        else:
+            return JsonResponse({'error': 'Token is invalid'}, status=401)
+
         try:
             # Verify the token using the secret key
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-
             # Attach the user ID from the token payload to the request for further processing
-            request.user_id = payload['user_id']
+            auth_data = {
+                'user_id': payload['user_id']
+            }
+            request.auth_data = auth_data
         except jwt.ExpiredSignatureError:
             return JsonResponse({'error': 'Token has expired'}, status=401)
         except jwt.InvalidTokenError:

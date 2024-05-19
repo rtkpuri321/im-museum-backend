@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'mymuseum.utils.token_validations.TokenValidationMiddleware',
+    'mymuseum.utils.token_validations.TokenValidationMiddleware',
     'corsheaders.middleware.CorsMiddleware'
 ]
 
@@ -151,6 +151,9 @@ CORS_ALLOWED_ORIGINS = [
 
 # Allow all headers
 CORS_ALLOW_ALL_HEADERS = True
+CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS for specific domains
+CORS_ALLOW_HEADERS = ['authorization', 'content-type']
+CORS_ALLOW_METHODS = ['GET', 'POST', 'OPTIONS']
 
 # Allow credentials (cookies, authorization headers, etc.) to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
