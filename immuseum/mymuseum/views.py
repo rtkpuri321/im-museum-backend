@@ -197,3 +197,75 @@ class AddUserInterest(APIView):
         except Exception as e:
             return Response({"message": "Error in adding interests.", "status":False}, status=500)
         
+class ViewUserComments(APIView):
+    def post(self, request):
+        try:
+            data = request.data
+            # Extract data from the request
+            image_id = data.get('image_id')
+            user_id = request.auth_data.get('user_id')
+            comment = data.get('comment')
+            
+            # Validate the presence of required fields
+            if not image_id and not comment:
+                return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create the new comment
+            UserComments.objects.create(
+                image_id_id=image_id,
+                commenter_user_id_id=user_id,
+                comment=comment,
+                status_flag=1
+            )
+            
+            return Response({'message':'User comment submitted!!!', "status":True}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        try:
+            data = request.query_params
+            # Extract data from the request
+            image_id = data.get('image_id')
+            user_id = request.auth_data.get('user_id')
+            
+            # Validate the presence of required fields
+            if not image_id:
+                return Response({'error': 'Missing required fields', 'status': False})
+            
+            # Create the new comment
+            comments = UserComments.objects.filter(
+                image_id_id=image_id,
+                status_flag=1
+            )
+            
+            # Serialize the newly created comment
+            serializer = ShowCommentsSerializer(comments, many=True)
+            
+            return Response({'message':'User comment submitted!!!', 'comments': serializer.data, "status":True} ,status=200)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UpdateProfilePicView(APIView):
+    def post(self, request):
+        try:
+            user_id = request.auth_data.get('user_id')
+            profile_pic = request.FILES.get('profile_pic')
+
+            try:
+                user = UserDetails.objects.get(id=user_id)
+            except UserDetails.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            if not profile_pic:
+                return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Use the helper function to upload the image
+            uploaded_image_path = upload_image(profile_pic, profile_pic.name, type='profile_pic')
+            
+            user.profile_pic = uploaded_image_path
+            user.save()
+
+            return Response({'message': 'Profile picture updated successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

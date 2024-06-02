@@ -7,7 +7,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import json
 import os
 
-def upload_image(image_file, image_name):
+def upload_image(image_file, image_name, type='image_upload'):
     # Read the contents of the JSON key file
     with open(settings.GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE, 'r') as key_file:
         keyfile_dict = json.load(key_file)
@@ -26,9 +26,13 @@ def upload_image(image_file, image_name):
     drive = GoogleDrive(gauth)
 
     # Create a file on Google Drive
+    folder_id = '1qw2v3RoQ_OJxGfJZcbXZLR9AopxM9Pvj'
+    if(type=='profile_pic'):
+        folder_id = '15fpEE2rROTRRkUaqbEGP85MuVNF-XdeM'
+    
     file_metadata = {
         'title': image_name,
-        'parents': [{'id': '1qw2v3RoQ_OJxGfJZcbXZLR9AopxM9Pvj'}]  # Specify the ID of the folder where you want to upload the file
+        'parents': [{'id': folder_id}]  # Specify the ID of the folder where you want to upload the file
     }
     file = drive.CreateFile(file_metadata)
     file.SetContentFile(temp_file_path)

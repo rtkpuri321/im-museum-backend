@@ -18,6 +18,7 @@ class UserDetails(models.Model):
     ifsc = models.CharField(max_length=20, null=True)
     vpa = models.CharField(max_length=50, null=True)
     password = models.CharField(max_length=255)
+    profile_pic = models.ImageField()
     subscribers = models.ManyToManyField(
         'self',
         through='Subscribers',
