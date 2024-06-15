@@ -7,6 +7,7 @@ from .utils.access_token_gen import *
 from .utils.upload_images import *
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Q
 
 
 # Create your views here.
@@ -269,3 +270,21 @@ class UpdateProfilePicView(APIView):
             return Response({'message': 'Profile picture updated successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserSearch(APIView):
+    def get(self, request):
+        try:
+            name = request.query_params.get('name', None)
+
+            if not name:
+                return Response({"detail": "Search parameter 'name' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Construct the query to search for user_name or username
+            query = Q(user_name__icontains=name) | Q(username__icontains=name)
+
+            users = UserDetails.objects.filter(query)
+            serializer = GetUserDataSerializer(users, many=True)
+            return Response({'message':'User fetched successfully!!!', 'data': serializer.data, "status":True} ,status=200)
+        except Exception as e:
+            print(f"Error while searching: {str(e)}")
+            return Response({'Error while searching': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

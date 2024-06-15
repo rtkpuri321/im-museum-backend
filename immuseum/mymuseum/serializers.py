@@ -21,7 +21,7 @@ class GetUserDataSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserDetails
-        exclude = ['password']  # Exclude the password field from serialization
+        exclude = ['password', 'account_no', 'ifsc', 'vpa']  # Exclude the password field from serialization
     def get_profile_pic(self, obj):  # Method name should match the field name
         # Check if the image field is not empty
         if obj.profile_pic:
@@ -48,6 +48,9 @@ class UserImageSerializer(serializers.ModelSerializer):
 class GetUserImageSerializer(serializers.ModelSerializer):
     # Define a new field for the converted Google Drive link
     converted_image_link = serializers.SerializerMethodField()
+    # Define a new field for the converted Google Drive link for the profile picture
+    profile_pic = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
 
     def get_converted_image_link(self, obj):
         # Check if the image field is not empty
@@ -67,9 +70,35 @@ class GetUserImageSerializer(serializers.ModelSerializer):
             # If the image field is empty, return None
             return None
 
+    def get_profile_pic(self, obj):
+        # Check if the profile_pic field is not empty
+        if obj.user_details and obj.user_details.profile_pic:
+            try:
+                # Convert the ImageFieldFile object to a string
+                profile_pic_url = str(obj.user_details.profile_pic)
+                # Extract the file ID from the original Google Drive link
+                file_id = profile_pic_url.split("/")[5]
+                # Construct the new link format
+                new_link = f"https://drive.google.com/thumbnail?id={file_id}"
+                return new_link
+            except IndexError:
+                # If the profile_pic URL is not in the expected format, return None
+                return None
+        else:
+            # If the profile_pic field is empty, return None
+            return None
+    
+    def get_username(self, obj):
+        if obj.user_details and obj.user_details.username:
+            return obj.user_details.username
+        else:
+            # If the profile_pic field is empty, return None
+            return None
+
     class Meta:
         model = UserImages
-        fields = ['image_id', 'image', 'converted_image_link', 'image_desc', 'image_likes', 'status_flag']
+        fields = ['image_id', 'image', 'converted_image_link', 'image_desc', 'image_likes', 'status_flag', 'profile_pic', 'username']
+
 
 class UserCommentsSerializer(serializers.ModelSerializer):
     class Meta:
